@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visual Animation Studio</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: #1a1a1a;
+            color: #ffffff;
+            overflow: hidden;
+        }
+
+        #canvas {
+            display: block;
+            cursor: crosshair;
+        }
+
+        #controls {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(30, 30, 30, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 20px;
+            border-radius: 10px;
+            width: 320px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+        }
+
+        h2 {
+            margin-bottom: 15px;
+            font-size: 1.2em;
+            color: #4CAF50;
+        }
+
+        .control-group {
+            margin-bottom: 20px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .control-group:last-child {
+            border-bottom: none;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 0.9em;
+            color: #b0b0b0;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            margin-bottom: 5px;
+        }
+
+        input[type="color"],
+        input[type="number"],
+        select {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 5px;
+            color: #ffffff;
+        }
+
+        button {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background 0.3s;
+        }
+
+        button:hover {
+            background: #45a049;
+        }
+
+        button.secondary {
+            background: #2196F3;
+        }
+
+        button.secondary:hover {
+            background: #1976D2;
+        }
+
+        button.danger {
+            background: #f44336;
+        }
+
+        button.danger:hover {
+            background: #d32f2f;
+        }
+
+        .value-display {
+            display: inline-block;
+            margin-left: 10px;
+            color: #4CAF50;
+            font-weight: bold;
+        }
+
+        #iconUpload {
+            display: none;
+        }
+
+        .icon-preview {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .icon-preview img {
+            width: 40px;
+            height: 40px;
+            object-fit: contain;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 5px;
+            padding: 5px;
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        #stats {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: rgba(30, 30, 30, 0.95);
+            padding: 15px;
+            border-radius: 10px;
+            font-size: 0.9em;
+            color: #4CAF50;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="canvas"></canvas>
+    
+    <div id="stats">
+        FPS: <span id="fps">60</span> | Particles: <span id="particleCount">0</span>
+    </div>
+
+    <div id="controls">
+        <h2>Visual Animation Studio</h2>
+        
+        <div class="control-group">
+            <label>Background Color</label>
+            <input type="color" id="bgColor" value="#000000">
+            
+            <label>Canvas Size</label>
+            <select id="canvasSize">
+                <option value="1920x1080">1920x1080 (Full HD)</option>
+                <option value="3840x2160">3840x2160 (4K)</option>
+                <option value="1280x720">1280x720 (HD)</option>
+                <option value="1080x1920">1080x1920 (Vertical)</option>
+                <option value="1080x1080">1080x1080 (Square)</option>
+            </select>
+        </div>
+
+        <div class="control-group">
+            <h2>Particle Settings</h2>
+            
+            <label>Number of Particles: <span class="value-display" id="particleNumDisplay">20</span></label>
+            <input type="range" id="particleNum" min="1" max="200" value="20">
+            
+            <label>Speed: <span class="value-display" id="speedDisplay">2</span></label>
+            <input type="range" id="speed" min="0.1" max="10" step="0.1" value="2">
+            
+            <label>Size: <span class="value-display" id="sizeDisplay">50</span></label>
+            <input type="range" id="size" min="10" max="200" value="50">
+            
+            <label>Rotation Speed: <span class="value-display" id="rotationDisplay">2</span></label>
+            <input type="range" id="rotationSpeed" min="0" max="10" step="0.1" value="2">
+        </div>
+
+        <div class="control-group">
+            <h2>Physics</h2>
+            
+            <label>Gravity: <span class="value-display" id="gravityDisplay">0</span></label>
+            <input type="range" id="gravity" min="-1" max="1" step="0.01" value="0">
+            
+            <label>Bounce: <span class="value-display" id="bounceDisplay">0.8</span></label>
+            <input type="range" id="bounce" min="0" max="1" step="0.1" value="0.8">
+            
+            <label>Friction: <span class="value-display" id="frictionDisplay">0.99</span></label>
+            <input type="range" id="friction" min="0.8" max="1" step="0.01" value="0.99">
+        </div>
+
+        <div class="control-group">
+            <h2>Effects</h2>
+            
+            <label>
+                <input type="checkbox" id="collisions" checked> Enable Collisions
+            </label>
+            
+            <label>
+                <input type="checkbox" id="trails"> Motion Trails
+            </label>
+            
+            <label>
+                <input type="checkbox" id="glow"> Glow Effect
+            </label>
+            
+            <label>
+                <input type="checkbox" id="pulse"> Pulse Animation
+            </label>
+        </div>
+
+        <div class="control-group">
+            <h2>Icons</h2>
+            <button onclick="document.getElementById('iconUpload').click()">Upload Icons</button>
+            <input type="file" id="iconUpload" multiple accept="image/*">
+            <button class="secondary" onclick="useDefaultIcons()">Use Default Icons</button>
+            <div id="iconPreview" class="icon-preview"></div>
+        </div>
+
+        <div class="control-group">
+            <h2>Animation Presets</h2>
+            <button onclick="applyPreset('chaos')">Chaos</button>
+            <button onclick="applyPreset('orbit')">Orbital</button>
+            <button onclick="applyPreset('fountain')">Fountain</button>
+            <button onclick="applyPreset('explosion')">Explosion</button>
+            <button onclick="applyPreset('spiral')">Spiral</button>
+            <button onclick="applyPreset('wave')">Wave</button>
+        </div>
+
+        <div class="control-group">
+            <button class="danger" onclick="resetAnimation()">Reset Animation</button>
+            <button class="secondary" onclick="toggleFullscreen()">Toggle Fullscreen</button>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        
+        let particles = [];
+        let icons = [];
+        let animationId;
+        let mouseX = 0;
+        let mouseY = 0;
+        let fps = 60;
+        let lastTime = performance.now();
+        let frameCount = 0;
+
+        // Settings
+        const settings = {
+            bgColor: '#000000',
+            particleNum: 20,
+            speed: 2,
+            size: 50,
+            rotationSpeed: 2,
+            gravity: 0,
+            bounce: 0.8,
+            friction: 0.99,
+            collisions: true,
+            trails: false,
+            glow: false,
+            pulse: false
+        };
+
+        // Particle class
+        class Particle {
+            constructor(x, y) {
+                this.x = x || Math.random() * canvas.width;
+                this.y = y || Math.random() * canvas.height;
+                this.vx = (Math.random() - 0.5) * settings.speed * 2;
+                this.vy = (Math.random() - 0.5) * settings.speed * 2;
+                this.size = settings.size + Math.random() * 20 - 10;
+                this.rotation = Math.random() * Math.PI * 2;
+                this.rotationSpeed = (Math.random() - 0.5) * settings.rotationSpeed * 0.1;
+                this.icon = icons.length > 0 ? icons[Math.floor(Math.random() * icons.length)] : null;
+                this.color = `hsl(${Math.random() * 360}, 70%, 50%)`;
+                this.pulsePhase = Math.random() * Math.PI * 2;
+                this.life = 1;
+            }
+
+            update() {
+                // Apply physics
+                this.vy += settings.gravity * 0.1;
+                this.vx *= settings.friction;
+                this.vy *= settings.friction;
+                
+                this.x += this.vx;
+                this.y += this.vy;
+                this.rotation += this.rotationSpeed;
+                
+                // Bounce off walls
+                if (this.x - this.size/2 < 0 || this.x + this.size/2 > canvas.width) {
+                    this.vx *= -settings.bounce;
+                    this.x = Math.max(this.size/2, Math.min(canvas.width - this.size/2, this.x));
+                }
+                if (this.y - this.size/2 < 0 || this.y + this.size/2 > canvas.height) {
+                    this.vy *= -settings.bounce;
+                    this.y = Math.max(this.size/2, Math.min(canvas.height - this.size/2, this.y));
+                }
+                
+                // Pulse effect
+                if (settings.pulse) {
+                    this.pulsePhase += 0.05;
+                }
+            }
+
+            draw() {
+                ctx.save();
+                ctx.translate(this.x, this.y);
+                ctx.rotate(this.rotation);
+                
+                // Apply pulse effect
+                let drawSize = this.size;
+                if (settings.pulse) {
+                    drawSize = this.size * (1 + Math.sin(this.pulsePhase) * 0.1);
+                }
+                
+                // Glow effect
+                if (settings.glow) {
+                    ctx.shadowBlur = 20;
+                    ctx.shadowColor = this.color;
+                }
+                
+                if (this.icon) {
+                    ctx.globalAlpha = this.life;
+                    ctx.drawImage(this.icon, -drawSize/2, -drawSize/2, drawSize, drawSize);
+                } else {
+                    // Draw colored circle if no icon
+                    ctx.fillStyle = this.color;
+                    ctx.globalAlpha = this.life;
+                    ctx.beginPath();
+                    ctx.arc(0, 0, drawSize/2, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+                
+                ctx.restore();
+            }
+        }
+
+        // Collision detection
+        function checkCollisions() {
+            if (!settings.collisions) return;
+            
+            for (let i = 0; i < particles.length; i++) {
+                for (let j = i + 1; j < particles.length; j++) {
+                    const p1 = particles[i];
+                    const p2 = particles[j];
+                    const dx = p2.x - p1.x;
+                    const dy = p2.y - p1.y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+                    const minDistance = (p1.size + p2.size) / 2;
+                    
+                    if (distance < minDistance) {
+                        // Collision detected
+                        const angle = Math.atan2(dy, dx);
+                        const sin = Math.sin(angle);
+                        const cos = Math.cos(angle);
+                        
+                        // Rotate velocities
+                        const vx1 = p1.vx * cos + p1.vy * sin;
+                        const vy1 = p1.vy * cos - p1.vx * sin;
+                        const vx2 = p2.vx * cos + p2.vy * sin;
+                        const vy2 = p2.vy * cos - p2.vx * sin;
+                        
+                        // Swap velocities
+                        p1.vx = vx2 * cos - vy1 * sin;
+                        p1.vy = vy1 * cos + vx2 * sin;
+                        p2.vx = vx1 * cos - vy2 * sin;
+                        p2.vy = vy2 * cos + vx1 * sin;
+                        
+                        // Separate particles
+                        const overlap = minDistance - distance;
+                        const separationX = dx / distance * overlap / 2;
+                        const separationY = dy / distance * overlap / 2;
+                        p1.x -= separationX;
+                        p1.y -= separationY;
+                        p2.x += separationX;
+                        p2.y += separationY;
+                        
+                        // Add spin on collision
+                        p1.rotationSpeed += (Math.random() - 0.5) * 0.2;
+                        p2.rotationSpeed += (Math.random() - 0.5) * 0.2;
+                    }
+                }
+            }
+        }
+
+        // Animation loop
+        function animate() {
+            // Calculate FPS
+            frameCount++;
+            const currentTime = performance.now();
+            if (currentTime - lastTime >= 1000) {
+                fps = frameCount;
+                frameCount = 0;
+                lastTime = currentTime;
+                document.getElementById('fps').textContent = fps;
+            }
+            
+            // Clear or apply trail effect
+            if (settings.trails) {
+                ctx.fillStyle = settings.bgColor + '10';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+            } else {
+                ctx.fillStyle = settings.bgColor;
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+            }
+            
+            // Update and draw particles
+            particles.forEach(particle => {
+                particle.update();
+                particle.draw();
+            });
+            
+            checkCollisions();
+            
+            animationId = requestAnimationFrame(animate);
+        }
+
+        // Initialize particles
+        function initParticles() {
+            particles = [];
+            for (let i = 0; i < settings.particleNum; i++) {
+                particles.push(new Particle());
+            }
+            document.getElementById('particleCount').textContent = particles.length;
+        }
+
+        // Resize canvas
+        function resizeCanvas() {
+            const size = document.getElementById('canvasSize').value.split('x');
+            canvas.width = parseInt(size[0]);
+            canvas.height = parseInt(size[1]);
+        }
+
+        // Default icons (using emojis on canvas)
+        function useDefaultIcons() {
+            const emojiList = ['🚀', '⭐', '💎', '🔥', '💫', '🌟', '✨', '🎯', '🎨', '🎪'];
+            icons = [];
+            const iconPreview = document.getElementById('iconPreview');
+            iconPreview.innerHTML = '';
+            
+            emojiList.forEach(emoji => {
+                const tempCanvas = document.createElement('canvas');
+                tempCanvas.width = 100;
+                tempCanvas.height = 100;
+                const tempCtx = tempCanvas.getContext('2d');
+                tempCtx.font = '80px Arial';
+                tempCtx.textAlign = 'center';
+                tempCtx.textBaseline = 'middle';
+                tempCtx.fillText(emoji, 50, 50);
+                
+                const img = new Image();
+                img.src = tempCanvas.toDataURL();
+                icons.push(img);
+                iconPreview.appendChild(img);
+            });
+            
+            // Reinitialize particles with new icons
+            setTimeout(() => initParticles(), 100);
+        }
+
+        // Upload custom icons
+        document.getElementById('iconUpload').addEventListener('change', function(e) {
+            const files = e.target.files;
+            icons = [];
+            const iconPreview = document.getElementById('iconPreview');
+            iconPreview.innerHTML = '';
+            
+            for (let file of files) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const img = new Image();
+                    img.src = e.target.result;
+                    icons.push(img);
+                    iconPreview.appendChild(img);
+                    
+                    if (icons.length === files.length) {
+                        initParticles();
+                    }
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // Apply presets
+        function applyPreset(preset) {
+            switch(preset) {
+                case 'chaos':
+                    settings.speed = 8;
+                    settings.rotationSpeed = 10;
+                    settings.gravity = 0;
+                    settings.collisions = true;
+                    settings.bounce = 1;
+                    settings.trails = true;
+                    break;
+                case 'orbit':
+                    settings.speed = 3;
+                    settings.rotationSpeed = 1;
+                    settings.gravity = 0.2;
+                    settings.collisions = false;
+                    settings.trails = true;
+                    break;
+                case 'fountain':
+                    settings.gravity = 0.5;
+                    settings.speed = 5;
+                    settings.bounce = 0.6;
+                    particles.forEach(p => {
+                        p.x = canvas.width / 2;
+                        p.y = canvas.height;
+                        p.vx = (Math.random() - 0.5) * 10;
+                        p.vy = -Math.random() * 20 - 10;
+                    });
+                    break;
+                case 'explosion':
+                    const centerX = canvas.width / 2;
+                    const centerY = canvas.height / 2;
+                    particles.forEach(p => {
+                        p.x = centerX;
+                        p.y = centerY;
+                        const angle = Math.random() * Math.PI * 2;
+                        const force = Math.random() * 15 + 5;
+                        p.vx = Math.cos(angle) * force;
+                        p.vy = Math.sin(angle) * force;
+                    });
+                    break;
+                case 'spiral':
+                    particles.forEach((p, i) => {
+                        const angle = (i / particles.length) * Math.PI * 2;
+                        const radius = i * 5;
+                        p.x = canvas.width / 2 + Math.cos(angle) * radius;
+                        p.y = canvas.height / 2 + Math.sin(angle) * radius;
+                        p.vx = Math.cos(angle + Math.PI/2) * 2;
+                        p.vy = Math.sin(angle + Math.PI/2) * 2;
+                    });
+                    break;
+                case 'wave':
+                    particles.forEach((p, i) => {
+                        p.x = (i / particles.length) * canvas.width;
+                        p.y = canvas.height / 2;
+                        p.vx = 0;
+                        p.vy = Math.sin(i * 0.5) * 5;
+                    });
+                    break;
+            }
+            updateControls();
+        }
+
+        // Update control displays
+        function updateControls() {
+            document.getElementById('speed').value = settings.speed;
+            document.getElementById('speedDisplay').textContent = settings.speed;
+            document.getElementById('rotationSpeed').value = settings.rotationSpeed;
+            document.getElementById('rotationDisplay').textContent = settings.rotationSpeed;
+            document.getElementById('gravity').value = settings.gravity;
+            document.getElementById('gravityDisplay').textContent = settings.gravity;
+            document.getElementById('bounce').value = settings.bounce;
+            document.getElementById('bounceDisplay').textContent = settings.bounce;
+            document.getElementById('collisions').checked = settings.collisions;
+            document.getElementById('trails').checked = settings.trails;
+        }
+
+        // Reset animation
+        function resetAnimation() {
+            initParticles();
+        }
+
+        // Toggle fullscreen
+        function toggleFullscreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen();
+            } else {
+                document.exitFullscreen();
+            }
+        }
+
+        // Control event listeners
+        document.getElementById('bgColor').addEventListener('change', (e) => {
+            settings.bgColor = e.target.value;
+        });
+
+        document.getElementById('canvasSize').addEventListener('change', resizeCanvas);
+
+        document.getElementById('particleNum').addEventListener('input', (e) => {
+            settings.particleNum = parseInt(e.target.value);
+            document.getElementById('particleNumDisplay').textContent = e.target.value;
+            initParticles();
+        });
+
+        document.getElementById('speed').addEventListener('input', (e) => {
+            settings.speed = parseFloat(e.target.value);
+            document.getElementById('speedDisplay').textContent = e.target.value;
+            particles.forEach(p => {
+                const speedRatio = settings.speed / 2;
+                p.vx = (Math.random() - 0.5) * settings.speed * 2;
+                p.vy = (Math.random() - 0.5) * settings.speed * 2;
+            });
+        });
+
+        document.getElementById('size').addEventListener('input', (e) => {
+            settings.size = parseInt(e.target.value);
+            document.getElementById('sizeDisplay').textContent = e.target.value;
+            particles.forEach(p => {
+                p.size = settings.size + Math.random() * 20 - 10;
+            });
+        });
+
+        document.getElementById('rotationSpeed').addEventListener('input', (e) => {
+            settings.rotationSpeed = parseFloat(e.target.value);
+            document.getElementById('rotationDisplay').textContent = e.target.value;
+            particles.forEach(p => {
+                p.rotationSpeed = (Math.random() - 0.5) * settings.rotationSpeed * 0.1;
+            });
+        });
+
+        document.getElementById('gravity').addEventListener('input', (e) => {
+            settings.gravity = parseFloat(e.target.value);
+            document.getElementById('gravityDisplay').textContent = e.target.value;
+        });
+
+        document.getElementById('bounce').addEventListener('input', (e) => {
+            settings.bounce = parseFloat(e.target.value);
+            document.getElementById('bounceDisplay').textContent = e.target.value;
+        });
+
+        document.getElementById('friction').addEventListener('input', (e) => {
+            settings.friction = parseFloat(e.target.value);
+            document.getElementById('frictionDisplay').textContent = e.target.value;
+        });
+
+        document.getElementById('collisions').addEventListener('change', (e) => {
+            settings.collisions = e.target.checked;
+        });
+
+        document.getElementById('trails').addEventListener('change', (e) => {
+            settings.trails = e.target.checked;
+        });
+
+        document.getElementById('glow').addEventListener('change', (e) => {
+            settings.glow = e.target.checked;
+        });
+
+        document.getElementById('pulse').addEventListener('change', (e) => {
+            settings.pulse = e.target.checked;
+        });
+
+        // Mouse interaction
+        canvas.addEventListener('click', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            
+            // Add explosion of particles at click point
+            for (let i = 0; i < 10; i++) {
+                const particle = new Particle(x, y);
+                const angle = (i / 10) * Math.PI * 2;
+                particle.vx = Math.cos(angle) * 5;
+                particle.vy = Math.sin(angle) * 5;
+                particles.push(particle);
+            }
+            document.getElementById('particleCount').textContent = particles.length;
+        });
+
+        // Initialize
+        resizeCanvas();
+        useDefaultIcons();
+        animate();
+    </script>
+</body>
+</html>
