@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lockheed Martin Jobs & Responsibilities Summary</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        
+        header {
+            background: linear-gradient(135deg, #003366 0%, #004080 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+        
+        header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        header p {
+            font-size: 1.2em;
+            opacity: 0.95;
+        }
+        
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            padding: 30px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #dee2e6;
+        }
+        
+        .stat-card {
+            text-align: center;
+            padding: 20px;
+        }
+        
+        .stat-number {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #004080;
+        }
+        
+        .stat-label {
+            color: #666;
+            margin-top: 5px;
+        }
+        
+        .content {
+            padding: 40px;
+        }
+        
+        .section {
+            margin-bottom: 40px;
+        }
+        
+        .section h2 {
+            color: #003366;
+            font-size: 2em;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 3px solid #004080;
+        }
+        
+        .job-categories {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .category-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+        
+        .category-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        }
+        
+        .category-card h3 {
+            font-size: 1.3em;
+            margin-bottom: 10px;
+        }
+        
+        .category-card p {
+            opacity: 0.95;
+        }
+        
+        .job-list {
+            list-style: none;
+        }
+        
+        .job-item {
+            background: #f8f9fa;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-radius: 10px;
+            border-left: 5px solid #004080;
+            transition: all 0.3s ease;
+        }
+        
+        .job-item:hover {
+            background: #e9ecef;
+            transform: translateX(5px);
+        }
+        
+        .job-title {
+            font-size: 1.3em;
+            color: #003366;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        
+        .job-location {
+            color: #666;
+            margin-bottom: 10px;
+            font-style: italic;
+        }
+        
+        .responsibilities {
+            margin-top: 15px;
+        }
+        
+        .responsibilities h4 {
+            color: #004080;
+            margin-bottom: 10px;
+        }
+        
+        .responsibilities ul {
+            margin-left: 20px;
+        }
+        
+        .responsibilities li {
+            margin-bottom: 5px;
+            color: #555;
+        }
+        
+        .highlights {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 10px;
+            margin-top: 30px;
+        }
+        
+        .highlights h3 {
+            font-size: 1.5em;
+            margin-bottom: 15px;
+        }
+        
+        .highlights ul {
+            list-style: none;
+        }
+        
+        .highlights li {
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.3);
+        }
+        
+        .highlights li:last-child {
+            border-bottom: none;
+        }
+        
+        footer {
+            background: #003366;
+            color: white;
+            text-align: center;
+            padding: 30px;
+        }
+        
+        footer p {
+            margin-bottom: 10px;
+        }
+        
+        .timestamp {
+            opacity: 0.8;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🚀 Lockheed Martin Careers</h1>
+            <p>Aerospace, Defense & Advanced Technologies Job Opportunities</p>
+        </header>
+        
+        <div class="stats">
+            <div class="stat-card">
+                <div class="stat-number">2,500+</div>
+                <div class="stat-label">Open Positions</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">50+</div>
+                <div class="stat-label">Career Areas</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">30+</div>
+                <div class="stat-label">States</div>
+            </div>
+        </div>
+        
+        <div class="content">
+            <div class="section">
+                <h2>Top Career Categories</h2>
+                <div class="job-categories">
+                    <div class="category-card">
+                        <h3>🔧 Systems Engineering</h3>
+                        <p>372 positions available in systems design, integration, and verification</p>
+                    </div>
+                    <div class="category-card">
+                        <h3>💻 Software Engineering</h3>
+                        <p>246 positions in software development, AI/ML, and cybersecurity</p>
+                    </div>
+                    <div class="category-card">
+                        <h3>🏭 Manufacturing</h3>
+                        <p>293 positions in production, assembly, and quality control</p>
+                    </div>
+                    <div class="category-card">
+                        <h3>🤖 AI/Machine Learning</h3>
+                        <p>76 positions in artificial intelligence and autonomous systems</p>
+                    </div>
+                    <div class="category-card">
+                        <h3>🛡️ Cyber Security</h3>
+                        <p>89 positions in cybersecurity and information assurance</p>
+                    </div>
+                    <div class="category-card">
+                        <h3>✈️ Aeronautical Engineering</h3>
+                        <p>42 positions in aircraft design and aerospace systems</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h2>Featured Positions & Responsibilities</h2>
+                <ul class="job-list">
+                    <li class="job-item">
+                        <div class="job-title">Systems Engineer Principal</div>
+                        <div class="job-location">📍 King of Prussia, PA / Littleton, CO</div>
+                        <div class="responsibilities">
+                            <h4>Key Responsibilities:</h4>
+                            <ul>
+                                <li>Lead technical solutions for Satellite Based Augmentation Systems (SBAS)</li>
+                                <li>Oversee synthesis of SBAS systems incorporating software and signal processing</li>
+                                <li>Serve as technical liaison between customer, LM, and contractors</li>
+                                <li>Plan and lead technical content of program execution</li>
+                                <li>Support business development for SBAS partnerships globally</li>
+                                <li>Develop technical solutions and white papers for future pursuits</li>
+                            </ul>
+                        </div>
+                    </li>
+                    
+                    <li class="job-item">
+                        <div class="job-title">Project Engineer - Systems Integration Lab</div>
+                        <div class="job-location">📍 Owego, NY</div>
+                        <div class="responsibilities">
+                            <h4>Key Responsibilities:</h4>
+                            <ul>
+                                <li>Implement and support Systems Integration Lab (SIL) design strategy</li>
+                                <li>Coordinate multi-disciplinary teams including architects and engineers</li>
+                                <li>Manage technical development using Earned Value Management (EVM)</li>
+                                <li>Resolve engineering and integration issues for SIL operations</li>
+                                <li>Interface with internal/external stakeholders and coordinate lab tours</li>
+                                <li>Support capital/overhead funding and develop Basis of Estimates</li>
+                            </ul>
+                        </div>
+                    </li>
+                    
+                    <li class="job-item">
+                        <div class="job-title">AI/Machine Learning Engineer</div>
+                        <div class="job-location">📍 Multiple Locations</div>
+                        <div class="responsibilities">
+                            <h4>Key Responsibilities:</h4>
+                            <ul>
+                                <li>Develop and implement machine learning models for defense applications</li>
+                                <li>Work on computer vision and autonomy projects</li>
+                                <li>Collaborate on signal processing and data analysis initiatives</li>
+                                <li>Support AI adoption strategies across the organization</li>
+                                <li>Implement DevSecOps practices for AI systems</li>
+                            </ul>
+                        </div>
+                    </li>
+                    
+                    <li class="job-item">
+                        <div class="job-title">Software Engineer - Aerospace Systems</div>
+                        <div class="job-location">📍 Fort Worth, TX / Orlando, FL</div>
+                        <div class="responsibilities">
+                            <h4>Key Responsibilities:</h4>
+                            <ul>
+                                <li>Develop software for advanced aerospace and defense systems</li>
+                                <li>Work on F-35, F-22, and other aircraft programs</li>
+                                <li>Implement real-time embedded systems</li>
+                                <li>Support mission-critical flight software</li>
+                                <li>Collaborate with cross-functional engineering teams</li>
+                            </ul>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+            
+            <div class="highlights">
+                <h3>🌟 Why Work at Lockheed Martin?</h3>
+                <ul>
+                    <li>✅ Work on cutting-edge aerospace and defense technologies</li>
+                    <li>✅ Competitive salaries ranging from $70,000 to $255,000+</li>
+                    <li>✅ Comprehensive benefits including medical, dental, vision, and 401(k) match</li>
+                    <li>✅ Flexible work schedules (9x80, 4x10 options)</li>
+                    <li>✅ Professional development and education assistance programs</li>
+                    <li>✅ Opportunities to work on classified and mission-critical projects</li>
+                    <li>✅ Global presence with locations across the United States</li>
+                    <li>✅ Strong commitment to diversity, equity, and inclusion</li>
+                </ul>
+            </div>
+            
+            <div class="section">
+                <h2>Top Locations</h2>
+                <div class="job-categories">
+                    <div class="category-card">
+                        <h3>📍 Texas</h3>
+                        <p>583 positions - Fort Worth, Houston, Dallas</p>
+                    </div>
+                    <div class="category-card">
+                        <h3>📍 Colorado</h3>
+                        <p>519 positions - Littleton, Denver, Colorado Springs</p>
+                    </div>
+                    <div class="category-card">
+                        <h3>📍 Florida</h3>
+                        <p>441 positions - Orlando, Cape Canaveral</p>
+                    </div>
+                    <div class="category-card">
+                        <h3>📍 California</h3>
+                        <p>272 positions - Palmdale, Sunnyvale, San Diego</p>
+                    </div>
+                    <div class="category-card">
+                        <h3>📍 Pennsylvania</h3>
+                        <p>232 positions - King of Prussia, Archbald</p>
+                    </div>
+                    <div class="category-card">
+                        <h3>📍 Alabama</h3>
+                        <p>170 positions - Huntsville, Troy</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <footer>
+            <p><strong>Lockheed Martin Corporation</strong></p>
+            <p>Equal Opportunity Employer | Building the Future of Aerospace & Defense</p>
+            <p class="timestamp">Data collected on: December 12, 2025</p>
+        </footer>
+    </div>
+</body>
+</html>

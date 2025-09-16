@@ -1,0 +1,744 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebGL Music Visualization</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            overflow: hidden;
+            background: #000;
+            font-family: 'Courier New', monospace;
+        }
+        
+        canvas {
+            display: block;
+            cursor: grab;
+        }
+        
+        canvas:active {
+            cursor: grabbing;
+        }
+        
+        .controls {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            z-index: 100;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 20px;
+            border-radius: 10px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            min-width: 250px;
+        }
+        
+        .controls h3 {
+            color: #fff;
+            margin-bottom: 15px;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+        
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-right: 10px;
+            margin-bottom: 10px;
+            transition: transform 0.2s, box-shadow 0.2s;
+            display: inline-block;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        button:active {
+            transform: translateY(0);
+        }
+        
+        select {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        
+        select option {
+            background: #333;
+            color: white;
+        }
+        
+        .control-group {
+            margin-bottom: 15px;
+        }
+        
+        .control-group label {
+            color: #aaa;
+            font-size: 12px;
+            display: block;
+            margin-bottom: 5px;
+        }
+        
+        input[type="range"] {
+            width: 100%;
+            margin-bottom: 5px;
+        }
+        
+        .range-value {
+            color: #667eea;
+            font-size: 11px;
+            text-align: right;
+        }
+        
+        .checkbox-group {
+            color: #aaa;
+            font-size: 12px;
+            margin-bottom: 10px;
+        }
+        
+        .checkbox-group input {
+            margin-right: 5px;
+        }
+        
+        .info {
+            color: #888;
+            font-size: 12px;
+            margin-top: 10px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            padding-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="controls">
+        <h3>Music Visualizer</h3>
+        
+        <button id="playBtn">Play Music</button>
+        
+        <div class="control-group">
+            <label>Visualization Mode</label>
+            <select id="modeSelect">
+                <option value="0">Sphere Grid</option>
+                <option value="1">Wave Field</option>
+                <option value="2">Particle Ring</option>
+                <option value="3">DNA Helix</option>
+                <option value="4">Cube Matrix</option>
+                <option value="5">Spiral Galaxy</option>
+                <option value="6">Crystal Tunnel</option>
+                <option value="7">Fractal Tree</option>
+                <option value="8">Ribbon Dance</option>
+            </select>
+        </div>
+        
+        <div class="control-group">
+            <label>Music Speed (BPM): <span class="range-value" id="bpmValue">120</span></label>
+            <input type="range" id="bpmSlider" min="60" max="180" value="120">
+        </div>
+        
+        <div class="control-group">
+            <label>Intensity: <span class="range-value" id="intensityValue">1.0</span></label>
+            <input type="range" id="intensitySlider" min="0.1" max="2" step="0.1" value="1">
+        </div>
+        
+        <div class="control-group">
+            <label>Camera Distance: <span class="range-value" id="zoomValue">30</span></label>
+            <input type="range" id="zoomSlider" min="10" max="50" value="30">
+        </div>
+        
+        <div class="checkbox-group">
+            <label><input type="checkbox" id="autoRotate" checked> Auto Rotate</label>
+        </div>
+        
+        <div class="checkbox-group">
+            <label><input type="checkbox" id="showStats"> Show Performance Stats</label>
+        </div>
+        
+        <button id="randomizeBtn">Randomize Colors</button>
+        
+        <div class="info">
+            Drag to rotate • Scroll to zoom<br>
+            <span id="fpsCounter"></span>
+        </div>
+    </div>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+        // Music simulation
+        class MusicSimulator {
+            constructor() {
+                this.time = 0;
+                this.isPlaying = false;
+                this.tempo = 120;
+                this.beatTime = 60 / this.tempo;
+                this.frequencies = new Array(32).fill(0);
+                this.smoothFrequencies = new Array(32).fill(0);
+                this.patterns = {
+                    kick: [1, 0, 0, 0, 1, 0, 0, 0],
+                    snare: [0, 0, 1, 0, 0, 0, 1, 0],
+                    hihat: [1, 1, 1, 1, 1, 1, 1, 1],
+                    bass: [1, 0, 0.5, 0, 1, 0, 0.5, 0],
+                    melody: [0, 0.7, 0, 0.5, 0, 0.8, 0, 0.3]
+                };
+            }
+            
+            update(deltaTime) {
+                if (!this.isPlaying) {
+                    for (let i = 0; i < this.frequencies.length; i++) {
+                        this.smoothFrequencies[i] *= 0.9;
+                    }
+                    return this.smoothFrequencies;
+                }
+                
+                this.time += deltaTime;
+                const beat = Math.floor((this.time / this.beatTime) % 8);
+                const beatProgress = (this.time % this.beatTime) / this.beatTime;
+                
+                this.frequencies.fill(0);
+                
+                const kickEnv = Math.exp(-beatProgress * 5) * this.patterns.kick[beat];
+                const bassLevel = this.patterns.bass[beat] * (1 - beatProgress * 0.5);
+                for (let i = 0; i < 8; i++) {
+                    this.frequencies[i] = (kickEnv * 0.8 + bassLevel * 0.5) * (1 - i / 8);
+                }
+                
+                const snareEnv = Math.exp(-beatProgress * 3) * this.patterns.snare[beat];
+                const melodyLevel = this.patterns.melody[beat] * Math.sin(beatProgress * Math.PI);
+                for (let i = 8; i < 20; i++) {
+                    this.frequencies[i] = (snareEnv * 0.6 + melodyLevel * 0.7) * 
+                                        Math.sin((i - 8) / 12 * Math.PI);
+                }
+                
+                const hihatEnv = Math.exp(-beatProgress * 10) * this.patterns.hihat[beat];
+                for (let i = 20; i < 32; i++) {
+                    this.frequencies[i] = hihatEnv * 0.4 * Math.random() * (1 - (i - 20) / 12);
+                }
+                
+                for (let i = 0; i < this.frequencies.length; i++) {
+                    this.frequencies[i] += Math.sin(this.time * 2 + i) * 0.1;
+                    this.frequencies[i] = Math.max(0, Math.min(1, this.frequencies[i]));
+                    this.smoothFrequencies[i] += (this.frequencies[i] - this.smoothFrequencies[i]) * 0.3;
+                }
+                
+                return this.smoothFrequencies;
+            }
+            
+            play() {
+                this.isPlaying = true;
+            }
+            
+            stop() {
+                this.isPlaying = false;
+            }
+        }
+        
+        // Three.js setup
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(window.devicePixelRatio);
+        document.body.appendChild(renderer.domElement);
+        
+        const ambientLight = new THREE.AmbientLight(0x404040);
+        scene.add(ambientLight);
+        const pointLight = new THREE.PointLight(0xffffff, 1);
+        pointLight.position.set(0, 10, 10);
+        scene.add(pointLight);
+        
+        camera.position.z = 30;
+        camera.position.y = 10;
+        camera.lookAt(0, 0, 0);
+        
+        // Mouse controls
+        let mouseX = 0, mouseY = 0;
+        let targetRotationX = 0, targetRotationY = 0;
+        let isDragging = false;
+        
+        document.addEventListener('mousedown', () => isDragging = true);
+        document.addEventListener('mouseup', () => isDragging = false);
+        document.addEventListener('mousemove', (e) => {
+            if (isDragging) {
+                mouseX = (e.clientX / window.innerWidth) * 2 - 1;
+                mouseY = -(e.clientY / window.innerHeight) * 2 + 1;
+                targetRotationY = mouseX * Math.PI;
+                targetRotationX = mouseY * Math.PI * 0.5;
+            }
+        });
+        
+        document.addEventListener('wheel', (e) => {
+            camera.position.z += e.deltaY * 0.05;
+            camera.position.z = Math.max(10, Math.min(50, camera.position.z));
+            document.getElementById('zoomSlider').value = camera.position.z;
+            document.getElementById('zoomValue').textContent = Math.round(camera.position.z);
+        });
+        
+        // Visualization modes
+        let currentMode = 0;
+        const visualizations = [];
+        
+        // Mode 1: Sphere Grid
+        const sphereGroup = new THREE.Group();
+        const spheres = [];
+        for (let i = 0; i < 32; i++) {
+            const geometry = new THREE.SphereGeometry(0.5, 16, 16);
+            const material = new THREE.MeshPhongMaterial({
+                color: new THREE.Color().setHSL(i / 32, 0.7, 0.5),
+                emissive: new THREE.Color().setHSL(i / 32, 0.7, 0.5),
+                emissiveIntensity: 0
+            });
+            const sphere = new THREE.Mesh(geometry, material);
+            const angle = (i / 32) * Math.PI * 2;
+            sphere.position.x = Math.cos(angle) * 10;
+            sphere.position.z = Math.sin(angle) * 10;
+            spheres.push(sphere);
+            sphereGroup.add(sphere);
+        }
+        visualizations.push(sphereGroup);
+        scene.add(sphereGroup);
+        
+        // Mode 2: Wave Field
+        const waveGroup = new THREE.Group();
+        const waveGeometry = new THREE.PlaneGeometry(40, 40, 31, 31);
+        const waveMaterial = new THREE.MeshPhongMaterial({
+            color: 0x00ffff,
+            wireframe: true,
+            side: THREE.DoubleSide
+        });
+        const waveMesh = new THREE.Mesh(waveGeometry, waveMaterial);
+        waveMesh.rotation.x = -Math.PI / 2;
+        waveGroup.add(waveMesh);
+        visualizations.push(waveGroup);
+        
+        // Mode 3: Particle Ring
+        const particleGroup = new THREE.Group();
+        const particleGeometry = new THREE.BufferGeometry();
+        const particleCount = 1000;
+        const positions = new Float32Array(particleCount * 3);
+        const colors = new Float32Array(particleCount * 3);
+        
+        for (let i = 0; i < particleCount; i++) {
+            const angle = (i / particleCount) * Math.PI * 2;
+            const radius = 15 + Math.random() * 5;
+            positions[i * 3] = Math.cos(angle) * radius;
+            positions[i * 3 + 1] = (Math.random() - 0.5) * 10;
+            positions[i * 3 + 2] = Math.sin(angle) * radius;
+            
+            const color = new THREE.Color().setHSL(i / particleCount, 0.7, 0.5);
+            colors[i * 3] = color.r;
+            colors[i * 3 + 1] = color.g;
+            colors[i * 3 + 2] = color.b;
+        }
+        
+        particleGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+        particleGeometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+        
+        const particleMaterial = new THREE.PointsMaterial({
+            size: 0.5,
+            vertexColors: true,
+            blending: THREE.AdditiveBlending
+        });
+        const particles = new THREE.Points(particleGeometry, particleMaterial);
+        particleGroup.add(particles);
+        visualizations.push(particleGroup);
+        
+        // Mode 4: DNA Helix
+        const helixGroup = new THREE.Group();
+        const helixBars = [];
+        const helixSpheres = [];
+        for (let i = 0; i < 32; i++) {
+            const barGeometry = new THREE.CylinderGeometry(0.1, 0.1, 10);
+            const barMaterial = new THREE.MeshPhongMaterial({
+                color: new THREE.Color().setHSL(i / 32, 0.6, 0.5),
+                emissive: new THREE.Color().setHSL(i / 32, 0.6, 0.3),
+                emissiveIntensity: 0
+            });
+            const bar = new THREE.Mesh(barGeometry, barMaterial);
+            bar.position.y = i * 1.5 - 24;
+            bar.rotation.z = Math.PI / 2;
+            helixBars.push(bar);
+            helixGroup.add(bar);
+            
+            for (let j = 0; j < 2; j++) {
+                const sphereGeometry = new THREE.SphereGeometry(0.8, 16, 16);
+                const sphereMaterial = new THREE.MeshPhongMaterial({
+                    color: new THREE.Color().setHSL((i / 32 + j * 0.5) % 1, 0.8, 0.6),
+                    emissive: new THREE.Color().setHSL((i / 32 + j * 0.5) % 1, 0.8, 0.4),
+                    emissiveIntensity: 0
+                });
+                const sphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
+                sphere.userData = { index: i, side: j };
+                helixSpheres.push(sphere);
+                helixGroup.add(sphere);
+            }
+        }
+        visualizations.push(helixGroup);
+        
+        // Mode 5: Cube Matrix
+        const cubeMatrixGroup = new THREE.Group();
+        const cubes = [];
+        const gridSize = 8;
+        for (let x = 0; x < gridSize; x++) {
+            for (let z = 0; z < gridSize; z++) {
+                const cubeGeometry = new THREE.BoxGeometry(1.5, 1.5, 1.5);
+                const cubeMaterial = new THREE.MeshPhongMaterial({
+                    color: new THREE.Color().setHSL((x * gridSize + z) / 64, 0.7, 0.5),
+                    emissive: new THREE.Color().setHSL((x * gridSize + z) / 64, 0.7, 0.3),
+                    emissiveIntensity: 0
+                });
+                const cube = new THREE.Mesh(cubeGeometry, cubeMaterial);
+                cube.position.x = (x - gridSize / 2) * 3;
+                cube.position.z = (z - gridSize / 2) * 3;
+                cube.position.y = 0;
+                cube.userData = { x: x, z: z };
+                cubes.push(cube);
+                cubeMatrixGroup.add(cube);
+            }
+        }
+        visualizations.push(cubeMatrixGroup);
+        
+        // Mode 6: Spiral Galaxy
+        const galaxyGroup = new THREE.Group();
+        const galaxyGeometry = new THREE.BufferGeometry();
+        const galaxyCount = 5000;
+        const galaxyPositions = new Float32Array(galaxyCount * 3);
+        const galaxyColors = new Float32Array(galaxyCount * 3);
+        const galaxySizes = new Float32Array(galaxyCount);
+        const galaxyOriginalPositions = new Float32Array(galaxyCount * 3);
+        
+        for (let i = 0; i < galaxyCount; i++) {
+            const angle = (i / galaxyCount) * Math.PI * 8;
+            const radius = (i / galaxyCount) * 25;
+            const spiralOffset = angle * 0.2;
+            
+            galaxyPositions[i * 3] = Math.cos(angle + spiralOffset) * radius;
+            galaxyPositions[i * 3 + 1] = (Math.random() - 0.5) * 3;
+            galaxyPositions[i * 3 + 2] = Math.sin(angle + spiralOffset) * radius;
+            
+            galaxyOriginalPositions[i * 3] = galaxyPositions[i * 3];
+            galaxyOriginalPositions[i * 3 + 1] = galaxyPositions[i * 3 + 1];
+            galaxyOriginalPositions[i * 3 + 2] = galaxyPositions[i * 3 + 2];
+            
+            const color = new THREE.Color().setHSL((angle / (Math.PI * 8)) % 1, 0.8, 0.6);
+            galaxyColors[i * 3] = color.r;
+            galaxyColors[i * 3 + 1] = color.g;
+            galaxyColors[i * 3 + 2] = color.b;
+            
+            galaxySizes[i] = Math.random() * 2 + 0.5;
+        }
+        
+        galaxyGeometry.setAttribute('position', new THREE.BufferAttribute(galaxyPositions, 3));
+        galaxyGeometry.setAttribute('color', new THREE.BufferAttribute(galaxyColors, 3));
+        galaxyGeometry.setAttribute('size', new THREE.BufferAttribute(galaxySizes, 1));
+        
+        const galaxyMaterial = new THREE.PointsMaterial({
+            size: 1,
+            vertexColors: true,
+            blending: THREE.AdditiveBlending,
+            sizeAttenuation: true
+        });
+        const galaxy = new THREE.Points(galaxyGeometry, galaxyMaterial);
+        galaxyGroup.add(galaxy);
+        galaxyGroup.userData = { originalPositions: galaxyOriginalPositions };
+        visualizations.push(galaxyGroup);
+        
+        // Mode 7: Crystal Tunnel
+        const tunnelGroup = new THREE.Group();
+        const rings = [];
+        const ringsCount = 20;
+        for (let i = 0; i < ringsCount; i++) {
+            const ring = new THREE.Group();
+            const segmentCount = 16;
+            
+            for (let j = 0; j < segmentCount; j++) {
+                const geometry = new THREE.OctahedronGeometry(0.8, 0);
+                const material = new THREE.MeshPhongMaterial({
+                    color: new THREE.Color().setHSL((i / ringsCount + j / segmentCount) % 1, 0.7, 0.5),
+                    emissive: new THREE.Color().setHSL((i / ringsCount + j / segmentCount) % 1, 0.7, 0.3),
+                    emissiveIntensity: 0,
+                    transparent: true,
+                    opacity: 0.8
+                });
+                const crystal = new THREE.Mesh(geometry, material);
+                
+                const angle = (j / segmentCount) * Math.PI * 2;
+                crystal.position.x = Math.cos(angle) * 8;
+                crystal.position.y = Math.sin(angle) * 8;
+                crystal.userData = { angle: angle, radius: 8 };
+                ring.add(crystal);
+            }
+            
+            ring.position.z = i * 3 - 30;
+            ring.userData = { index: i };
+            rings.push(ring);
+            tunnelGroup.add(ring);
+        }
+        visualizations.push(tunnelGroup);
+        
+        // Mode 8: Fractal Tree
+        const treeGroup = new THREE.Group();
+        const branches = [];
+        
+        function createBranch(level, maxLevel, parentPos, angle, angleZ) {
+            if (level > maxLevel) return;
+            
+            const length = 8 / (level + 1);
+            const thickness = 0.3 / (level + 1);
+            
+            const geometry = new THREE.CylinderGeometry(thickness, thickness * 1.5, length);
+            const material = new THREE.MeshPhongMaterial({
+                color: new THREE.Color().setHSL(level / maxLevel, 0.6, 0.4),
+                emissive: new THREE.Color().setHSL(level / maxLevel, 0.6, 0.3),
+                emissiveIntensity: 0
+            });
+            const branch = new THREE.Mesh(geometry, material);
+            
+            branch.position.copy(parentPos);
+            branch.position.x += Math.sin(angle) * Math.cos(angleZ) * length * 0.5;
+            branch.position.y += Math.cos(angle) * length * 0.5;
+            branch.position.z += Math.sin(angleZ) * length * 0.5;
+            
+            branch.rotation.z = -angle;
+            branch.rotation.x = angleZ;
+            branch.userData = { level: level, baseAngle: angle, baseAngleZ: angleZ };
+            
+            branches.push(branch);
+            treeGroup.add(branch);
+            
+            if (level < maxLevel) {
+                const newPos = new THREE.Vector3(
+                    parentPos.x + Math.sin(angle) * Math.cos(angleZ) * length,
+                    parentPos.y + Math.cos(angle) * length,
+                    parentPos.z + Math.sin(angleZ) * length
+                );
+                
+                for (let i = 0; i < 2; i++) {
+                    const spreadAngle = (Math.PI / 6) * (i === 0 ? 1 : -1);
+                    const spreadAngleZ = (Math.PI / 8) * (Math.random() - 0.5);
+                    createBranch(level + 1, maxLevel, newPos, angle + spreadAngle, angleZ + spreadAngleZ);
+                }
+            }
+        }
+        
+        createBranch(0, 5, new THREE.Vector3(0, -15, 0), 0, 0);
+        visualizations.push(treeGroup);
+        
+        // Mode 9: Ribbon Dance
+        const ribbonGroup = new THREE.Group();
+        const ribbonCount = 8;
+        const ribbons = [];
+        
+        for (let r = 0; r < ribbonCount; r++) {
+            const curve = new THREE.CatmullRomCurve3([]);
+            const points = [];
+            const pointCount = 50;
+            
+            for (let i = 0; i < pointCount; i++) {
+                const angle = (i / pointCount) * Math.PI * 4;
+                const radius = 10;
+                points.push(new THREE.Vector3(
+                    Math.cos(angle + r * Math.PI / 4) * radius,
+                    (i - pointCount / 2) * 0.8,
+                    Math.sin(angle + r * Math.PI / 4) * radius
+                ));
+            }
+            curve.points = points;
+            
+            const tubeGeometry = new THREE.TubeGeometry(curve, 100, 0.5, 8, false);
+            const tubeMaterial = new THREE.MeshPhongMaterial({
+                color: new THREE.Color().setHSL(r / ribbonCount, 0.8, 0.5),
+                emissive: new THREE.Color().setHSL(r / ribbonCount, 0.8, 0.3),
+                emissiveIntensity: 0,
+                transparent: true,
+                opacity: 0.7,
+                side: THREE.DoubleSide
+            });
+            const ribbon = new THREE.Mesh(tubeGeometry, tubeMaterial);
+            ribbon.userData = { 
+                index: r, 
+                originalPoints: points.map(p => p.clone()),
+                curve: curve
+            };
+            ribbons.push(ribbon);
+            ribbonGroup.add(ribbon);
+        }
+        ribbonGroup.userData = { ribbons: ribbons };
+        visualizations.push(ribbonGroup);
+        
+        // Music simulator
+        const musicSim = new MusicSimulator();
+        let intensityMultiplier = 1.0;
+        let autoRotateEnabled = true;
+        
+        // Controls
+        const playBtn = document.getElementById('playBtn');
+        const modeSelect = document.getElementById('modeSelect');
+        const bpmSlider = document.getElementById('bpmSlider');
+        const bpmValue = document.getElementById('bpmValue');
+        const intensitySlider = document.getElementById('intensitySlider');
+        const intensityValue = document.getElementById('intensityValue');
+        const zoomSlider = document.getElementById('zoomSlider');
+        const zoomValue = document.getElementById('zoomValue');
+        const autoRotateCheckbox = document.getElementById('autoRotate');
+        const showStatsCheckbox = document.getElementById('showStats');
+        const randomizeBtn = document.getElementById('randomizeBtn');
+        const fpsCounter = document.getElementById('fpsCounter');
+        
+        playBtn.addEventListener('click', () => {
+            if (musicSim.isPlaying) {
+                musicSim.stop();
+                playBtn.textContent = 'Play Music';
+            } else {
+                musicSim.play();
+                playBtn.textContent = 'Stop Music';
+            }
+        });
+        
+        modeSelect.addEventListener('change', (e) => {
+            scene.remove(visualizations[currentMode]);
+            currentMode = parseInt(e.target.value);
+            scene.add(visualizations[currentMode]);
+        });
+        
+        bpmSlider.addEventListener('input', (e) => {
+            musicSim.tempo = parseInt(e.target.value);
+            musicSim.beatTime = 60 / musicSim.tempo;
+            bpmValue.textContent = e.target.value;
+        });
+        
+        intensitySlider.addEventListener('input', (e) => {
+            intensityMultiplier = parseFloat(e.target.value);
+            intensityValue.textContent = e.target.value;
+        });
+        
+        zoomSlider.addEventListener('input', (e) => {
+            camera.position.z = parseInt(e.target.value);
+            zoomValue.textContent = e.target.value;
+        });
+        
+        autoRotateCheckbox.addEventListener('change', (e) => {
+            autoRotateEnabled = e.target.checked;
+        });
+        
+        showStatsCheckbox.addEventListener('change', (e) => {
+            fpsCounter.style.display = e.target.checked ? 'block' : 'none';
+        });
+        
+        randomizeBtn.addEventListener('click', () => {
+            if (currentMode === 0) {
+                spheres.forEach((sphere) => {
+                    const hue = Math.random();
+                    sphere.material.color.setHSL(hue, 0.7, 0.5);
+                    sphere.material.emissive.setHSL(hue, 0.7, 0.5);
+                });
+            }
+        });
+        
+        // Animation
+        let lastTime = 0;
+        let frameCount = 0;
+        let fpsTime = 0;
+        
+        function animate(time) {
+            requestAnimationFrame(animate);
+            
+            const deltaTime = (time - lastTime) / 1000;
+            lastTime = time;
+            
+            frameCount++;
+            if (time - fpsTime > 1000) {
+                if (showStatsCheckbox.checked) {
+                    fpsCounter.textContent = `FPS: ${frameCount}`;
+                }
+                frameCount = 0;
+                fpsTime = time;
+            }
+            
+            const rawFrequencies = musicSim.update(deltaTime);
+            const frequencies = rawFrequencies.map(f => f * intensityMultiplier);
+            
+            if (autoRotateEnabled && !isDragging) {
+                targetRotationY += 0.005;
+            }
+            
+            // Update rotations for active visualization
+            const activeViz = visualizations[currentMode];
+            if (activeViz && activeViz.parent) {
+                if (currentMode === 1) {
+                    activeViz.rotation.z += (targetRotationY - activeViz.rotation.z) * 0.05;
+                } else if (currentMode === 6) {
+                    activeViz.rotation.z += (targetRotationY - activeViz.rotation.z) * 0.05;
+                } else {
+                    activeViz.rotation.y += (targetRotationY - activeViz.rotation.y) * 0.05;
+                    if (currentMode !== 2 && currentMode !== 7) {
+                        activeViz.rotation.x += (targetRotationX - activeViz.rotation.x) * 0.05;
+                    }
+                }
+            }
+            
+            // Update visualizations
+            if (currentMode === 0) {
+                spheres.forEach((sphere, i) => {
+                    const scale = 1 + frequencies[i] * 2;
+                    sphere.scale.set(scale, scale, scale);
+                    sphere.position.y = frequencies[i] * 10;
+                    sphere.material.emissiveIntensity = frequencies[i];
+                    sphere.rotation.x += frequencies[i] * 0.1;
+                    sphere.rotation.y += frequencies[i] * 0.05;
+                });
+            } else if (currentMode === 1) {
+                const positions = waveGeometry.attributes.position;
+                for (let i = 0; i < positions.count; i++) {
+                    const x = i % 32;
+                    const y = Math.floor(i / 32);
+                    const freq = frequencies[Math.min(x, frequencies.length - 1)];
+                    positions.setZ(i, Math.sin(time * 0.002 + x * 0.5) * freq * 5 + 
+                                     Math.cos(time * 0.003 + y * 0.5) * freq * 3);
+                }
+                positions.needsUpdate = true;
+            } else if (currentMode === 2) {
+                const positions = particleGeometry.attributes.position;
+                for (let i = 0; i < particleCount; i++) {
+                    const freqIndex = Math.floor((i / particleCount) * frequencies.length);
+                    const freq = frequencies[freqIndex];
+                    const angle = (i / particleCount) * Math.PI * 2 + time * 0.0005;
+                    const radius = 15 + freq * 10;
+                    positions.setX(i, Math.cos(angle) * radius);
+                    positions.setY(i, (Math.random() - 0.5) * 10 * (1 + freq));
+                    positions.setZ(i, Math.sin(angle) * radius);
+                }
+                positions.needsUpdate = true;
+            }
+            
+            renderer.render(scene, camera);
+        }
+        
+        animate(0);
+        
+        // Handle resize
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+    </script>
+</body>
+</html>
