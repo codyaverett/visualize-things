@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Particle Like Button</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+        }
+
+        .particleButton {
+            position: relative;
+            width: 80px;
+            height: 80px;
+            border: none;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: all 0.3s ease;
+            overflow: visible;
+        }
+
+        .particleButton:hover {
+            transform: scale(1.1);
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .particleButton:active {
+            transform: scale(0.95);
+        }
+
+        .particleButton svg {
+            width: 40px;
+            height: 40px;
+            transition: all 0.3s ease;
+        }
+
+        .particleButton svg path {
+            transition: all 0.3s ease;
+            fill: transparent;
+        }
+
+        .particleButton.liked svg path {
+            fill: white;
+            stroke: white;
+        }
+
+        .particleButton.liked svg {
+            animation: heartBeat 0.5s ease;
+        }
+
+        @keyframes heartBeat {
+            0%, 100% {
+                transform: scale(1);
+            }
+            25% {
+                transform: scale(1.3);
+            }
+            50% {
+                transform: scale(0.9);
+            }
+            75% {
+                transform: scale(1.15);
+            }
+        }
+
+        .particle {
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: white;
+            pointer-events: none;
+            animation: fadeOut 1000ms forwards;
+        }
+
+        @keyframes fadeOut {
+            from {
+                opacity: 1;
+                transform: translate(0, 0) scale(1);
+            }
+            to {
+                opacity: 0;
+                transform: translate(var(--tx), var(--ty)) scale(0.3);
+            }
+        }
+
+        .visually-hidden {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border: 0;
+        }
+
+        /* Additional styling for better visual */
+        .container {
+            text-align: center;
+        }
+
+        .title {
+            color: white;
+            margin-bottom: 40px;
+            font-size: 24px;
+            font-weight: 300;
+            letter-spacing: 2px;
+        }
+
+        .info {
+            color: rgba(255, 255, 255, 0.8);
+            margin-top: 40px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="title">PARTICLE LIKE BUTTON</h1>
+        
+        <button class="particleButton">
+            <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+                aria-hidden="true"
+            >
+                <path
+                    d="M3.68546 6.43796C8.61936 2.29159 11.8685 8.4309 12.0406 8.4309C12.2126 8.43091 15.4617 2.29159 20.3956 6.43796C26.8941 11.8991 13.5 22.8215 12.0406 22.8215C10.5811 22.8215 -2.81297 11.8991 3.68546 6.43796Z"
+                    stroke="white"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                />
+            </svg>
+            <span class="visually-hidden">Like this post</span>
+        </button>
+        
+        <p class="info">Click the heart to see the particle magic! ✨</p>
+    </div>
+
+    <script>
+        // Utility functions (replacing lodash)
+        function random(min, max) {
+            return Math.floor(Math.random() * (max - min + 1)) + min;
+        }
+
+        function range(n) {
+            return Array.from({ length: n }, (_, i) => i);
+        }
+
+        // Main functionality
+        const btn = document.querySelector('.particleButton');
+
+        btn.addEventListener('click', () => {
+            btn.classList.toggle('liked');
+
+            const isLiked = btn.classList.contains('liked');
+
+            // Bail out early if the user is undoing their like
+            if (!isLiked) {
+                // Clean up any remaining particles
+                const existingParticles = btn.querySelectorAll('.particle');
+                existingParticles.forEach(p => p.remove());
+                return;
+            }
+
+            // PARTICLE MAGIC HERE ✨
+            range(12).forEach((i) => {
+                setTimeout(() => {
+                    const particle = document.createElement('span');
+                    particle.classList.add('particle');
+
+                    // Random position within the button
+                    const top = random(20, 80);
+                    const left = random(20, 80);
+                    
+                    particle.style.top = top + '%';
+                    particle.style.left = left + '%';
+                    
+                    // Add random movement direction for each particle
+                    const tx = random(-50, 50) + 'px';
+                    const ty = random(-50, -20) + 'px';
+                    particle.style.setProperty('--tx', tx);
+                    particle.style.setProperty('--ty', ty);
+                    
+                    // Random colors for variety
+                    const colors = ['#ffffff', '#ffeb3b', '#ff9800', '#f44336', '#e91e63', '#9c27b0'];
+                    particle.style.background = colors[random(0, colors.length - 1)];
+                    
+                    // Random sizes for variety
+                    const size = random(8, 16) + 'px';
+                    particle.style.width = size;
+                    particle.style.height = size;
+
+                    btn.appendChild(particle);
+
+                    // Remove particle after animation completes
+                    setTimeout(() => {
+                        particle.remove();
+                    }, 1000);
+                }, i * 30); // Stagger particle creation
+            });
+        });
+    </script>
+</body>
+</html>

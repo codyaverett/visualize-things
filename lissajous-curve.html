@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lissajous Curve Simulator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            overflow: hidden;
+            background: linear-gradient(135deg, #0a0a1a 0%, #1a0a2e 50%, #16213e 100%);
+            color: #ffffff;
+        }
+
+        #root {
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+        }
+
+        canvas {
+            display: block;
+            background: radial-gradient(circle at center, rgba(20, 20, 40, 0.9) 0%, rgba(10, 10, 20, 0.95) 100%);
+        }
+
+        .controls {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            padding: 20px;
+            max-width: 320px;
+            max-height: calc(100vh - 40px);
+            overflow-y: auto;
+            box-shadow: 0 8px 32px rgba(0, 255, 255, 0.1);
+            border: 1px solid rgba(0, 255, 255, 0.2);
+        }
+
+        .controls::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .controls::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 4px;
+        }
+
+        .controls::-webkit-scrollbar-thumb {
+            background: rgba(0, 255, 255, 0.3);
+            border-radius: 4px;
+        }
+
+        .controls h1 {
+            font-size: 24px;
+            margin-bottom: 15px;
+            background: linear-gradient(135deg, #00ffff 0%, #ff00ff 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 0 20px rgba(0, 255, 255, 0.3);
+        }
+
+        .control-group {
+            margin-bottom: 20px;
+        }
+
+        .control-group h3 {
+            font-size: 14px;
+            color: #00ffff;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .control-item {
+            margin-bottom: 12px;
+        }
+
+        .control-item label {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 5px;
+            font-size: 13px;
+            color: #cccccc;
+        }
+
+        .control-item .value {
+            color: #00ffff;
+            font-weight: bold;
+            font-family: monospace;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            height: 4px;
+            border-radius: 2px;
+            background: linear-gradient(90deg, #00ffff 0%, #ff00ff 100%);
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: #00ffff;
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(0, 255, 255, 0.8);
+        }
+
+        input[type="range"]::-moz-range-thumb {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: #00ffff;
+            cursor: pointer;
+            border: none;
+            box-shadow: 0 0 10px rgba(0, 255, 255, 0.8);
+        }
+
+        input[type="color"] {
+            width: 100%;
+            height: 35px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            background: transparent;
+        }
+
+        button {
+            width: 100%;
+            padding: 10px;
+            margin: 5px 0;
+            border: none;
+            border-radius: 6px;
+            background: linear-gradient(135deg, rgba(0, 255, 255, 0.2) 0%, rgba(255, 0, 255, 0.2) 100%);
+            color: #ffffff;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            border: 1px solid rgba(0, 255, 255, 0.3);
+        }
+
+        button:hover {
+            background: linear-gradient(135deg, rgba(0, 255, 255, 0.4) 0%, rgba(255, 0, 255, 0.4) 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 255, 255, 0.3);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .presets {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .presets button {
+            padding: 8px;
+            font-size: 12px;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin: 8px 0;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+            accent-color: #00ffff;
+        }
+
+        .checkbox-group label {
+            margin: 0;
+            cursor: pointer;
+            font-size: 13px;
+        }
+
+        .stats {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(10px);
+            padding: 15px;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 12px;
+            color: #00ffff;
+            border: 1px solid rgba(0, 255, 255, 0.2);
+        }
+
+        .stats div {
+            margin: 5px 0;
+        }
+
+        .divider {
+            height: 1px;
+            background: linear-gradient(90deg, transparent 0%, rgba(0, 255, 255, 0.3) 50%, transparent 100%);
+            margin: 15px 0;
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <!-- React and Babel -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
+
+        const PRESETS = [
+            { name: "Circle", freqA: 1, freqB: 1, phase: Math.PI / 2, ampA: 200, ampB: 200 },
+            { name: "Line", freqA: 1, freqB: 1, phase: 0, ampA: 200, ampB: 200 },
+            { name: "Ellipse", freqA: 1, freqB: 1, phase: Math.PI / 4, ampA: 250, ampB: 150 },
+            { name: "2:1", freqA: 2, freqB: 1, phase: Math.PI / 2, ampA: 200, ampB: 200 },
+            { name: "3:2", freqA: 3, freqB: 2, phase: Math.PI / 2, ampA: 200, ampB: 200 },
+            { name: "5:4", freqA: 5, freqB: 4, phase: Math.PI / 2, ampA: 200, ampB: 200 },
+            { name: "3:4", freqA: 3, freqB: 4, phase: Math.PI / 2, ampA: 200, ampB: 200 },
+            { name: "Infinity", freqA: 1, freqB: 2, phase: Math.PI / 2, ampA: 200, ampB: 200 }
+        ];
+
+        function LissajousSimulator() {
+            const canvasRef = useRef(null);
+            const animationRef = useRef(null);
+            const lastTimeRef = useRef(0);
+            const fpsRef = useRef(0);
+            const frameCountRef = useRef(0);
+            const lastFpsUpdateRef = useRef(0);
+
+            const [params, setParams] = useState({
+                freqA: 3,
+                freqB: 2,
+                phase: Math.PI / 2,
+                ampA: 200,
+                ampB: 200,
+                speed: 1,
+                lineWidth: 2,
+                color: '#00ffff',
+                showTrail: true,
+                showGlow: true,
+                infinityMode: false,
+                rainbowMode: false
+            });
+
+            const [t, setT] = useState(0);
+            const [fps, setFps] = useState(0);
+            const [isAnimating, setIsAnimating] = useState(true);
+
+            useEffect(() => {
+                const canvas = canvasRef.current;
+                if (!canvas) return;
+
+                const ctx = canvas.getContext('2d');
+
+                const resizeCanvas = () => {
+                    canvas.width = window.innerWidth;
+                    canvas.height = window.innerHeight;
+                };
+
+                resizeCanvas();
+                window.addEventListener('resize', resizeCanvas);
+
+                return () => {
+                    window.removeEventListener('resize', resizeCanvas);
+                    if (animationRef.current) {
+                        cancelAnimationFrame(animationRef.current);
+                    }
+                };
+            }, []);
+
+            useEffect(() => {
+                const canvas = canvasRef.current;
+                if (!canvas) return;
+
+                const ctx = canvas.getContext('2d');
+                const centerX = canvas.width / 2;
+                const centerY = canvas.height / 2;
+
+                let currentT = 0;
+                let infinityT = 0;
+
+                const animate = (timestamp) => {
+                    if (!isAnimating) return;
+
+                    // FPS calculation
+                    frameCountRef.current++;
+                    if (timestamp - lastFpsUpdateRef.current >= 1000) {
+                        fpsRef.current = Math.round(frameCountRef.current * 1000 / (timestamp - lastFpsUpdateRef.current));
+                        setFps(fpsRef.current);
+                        frameCountRef.current = 0;
+                        lastFpsUpdateRef.current = timestamp;
+                    }
+
+                    // Clear canvas with trail effect
+                    if (params.showTrail) {
+                        ctx.fillStyle = 'rgba(20, 20, 40, 0.05)';
+                        ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    } else {
+                        ctx.clearRect(0, 0, canvas.width, canvas.height);
+                        ctx.fillStyle = 'rgba(20, 20, 40, 0.9)';
+                        ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    }
+
+                    // Calculate phase for infinity mode
+                    const currentPhase = params.infinityMode
+                        ? params.phase + Math.sin(infinityT * 0.5) * Math.PI
+                        : params.phase;
+
+                    // Draw the curve
+                    const maxT = Math.PI * 2;
+                    // Use fewer steps in rainbow mode for better performance
+                    const steps = params.rainbowMode ? 200 : 1000;
+                    const animatedSteps = params.infinityMode ? steps : Math.floor((currentT / maxT) * steps);
+
+                    // Draw with or without rainbow
+                    if (params.rainbowMode) {
+                        // Rainbow mode: draw dots/circles for better performance
+                        const dotSize = Math.max(params.lineWidth * 1.5, 3);
+
+                        // Disable shadow for the dots, we'll add glow separately if needed
+                        ctx.shadowBlur = 0;
+
+                        for (let i = 0; i <= Math.min(animatedSteps, steps); i++) {
+                            const tVal = (i / steps) * maxT;
+                            const x = centerX + params.ampA * Math.sin(params.freqA * tVal + currentPhase);
+                            const y = centerY + params.ampB * Math.sin(params.freqB * tVal);
+
+                            // Calculate hue based on position in curve
+                            const hue = (i / steps) * 360;
+                            ctx.fillStyle = `hsl(${hue}, 100%, 60%)`;
+
+                            // Draw dot
+                            ctx.beginPath();
+                            ctx.arc(x, y, dotSize, 0, Math.PI * 2);
+                            ctx.fill();
+
+                            // Optional: add glow effect for rainbow (more expensive but prettier)
+                            if (params.showGlow && i % 5 === 0) {
+                                ctx.shadowBlur = 15;
+                                ctx.shadowColor = `hsl(${hue}, 100%, 60%)`;
+                                ctx.beginPath();
+                                ctx.arc(x, y, dotSize * 0.8, 0, Math.PI * 2);
+                                ctx.fill();
+                                ctx.shadowBlur = 0;
+                            }
+                        }
+                    } else {
+                        // Normal mode: single color
+                        ctx.beginPath();
+                        ctx.lineWidth = params.lineWidth;
+                        ctx.strokeStyle = params.color;
+
+                        if (params.showGlow) {
+                            ctx.shadowBlur = 20;
+                            ctx.shadowColor = params.color;
+                        } else {
+                            ctx.shadowBlur = 0;
+                        }
+
+                        for (let i = 0; i <= Math.min(animatedSteps, steps); i++) {
+                            const tVal = (i / steps) * maxT;
+                            const x = centerX + params.ampA * Math.sin(params.freqA * tVal + currentPhase);
+                            const y = centerY + params.ampB * Math.sin(params.freqB * tVal);
+
+                            if (i === 0) {
+                                ctx.moveTo(x, y);
+                            } else {
+                                ctx.lineTo(x, y);
+                            }
+                        }
+
+                        ctx.stroke();
+                    }
+
+                    // Draw current point
+                    if (!params.infinityMode && animatedSteps < steps) {
+                        const tVal = (animatedSteps / steps) * maxT;
+                        const x = centerX + params.ampA * Math.sin(params.freqA * tVal + currentPhase);
+                        const y = centerY + params.ampB * Math.sin(params.freqB * tVal);
+
+                        ctx.beginPath();
+                        ctx.arc(x, y, 5, 0, Math.PI * 2);
+
+                        if (params.rainbowMode) {
+                            const hue = (animatedSteps / steps) * 360;
+                            ctx.fillStyle = `hsl(${hue}, 100%, 60%)`;
+                        } else {
+                            ctx.fillStyle = params.color;
+                        }
+
+                        ctx.shadowBlur = 15;
+                        ctx.fill();
+                    }
+
+                    // Update time
+                    if (params.infinityMode) {
+                        infinityT += 0.01 * params.speed;
+                    } else {
+                        currentT += 0.02 * params.speed;
+                        if (currentT > maxT) {
+                            currentT = 0;
+                        }
+                    }
+
+                    setT(params.infinityMode ? infinityT : currentT);
+                    animationRef.current = requestAnimationFrame(animate);
+                };
+
+                if (isAnimating) {
+                    animationRef.current = requestAnimationFrame(animate);
+                }
+
+                return () => {
+                    if (animationRef.current) {
+                        cancelAnimationFrame(animationRef.current);
+                    }
+                };
+            }, [params, isAnimating]);
+
+            const handleParamChange = (key, value) => {
+                setParams(prev => ({ ...prev, [key]: parseFloat(value) || value }));
+            };
+
+            const handlePreset = (preset) => {
+                setParams(prev => ({
+                    ...prev,
+                    freqA: preset.freqA,
+                    freqB: preset.freqB,
+                    phase: preset.phase,
+                    ampA: preset.ampA,
+                    ampB: preset.ampB
+                }));
+                setT(0);
+            };
+
+            const clearCanvas = () => {
+                const canvas = canvasRef.current;
+                if (!canvas) return;
+                const ctx = canvas.getContext('2d');
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                ctx.fillStyle = 'rgba(20, 20, 40, 0.9)';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                setT(0);
+            };
+
+            return (
+                <>
+                    <canvas ref={canvasRef} />
+
+                    <div className="stats">
+                        <div>FPS: {fps}</div>
+                        <div>t: {t.toFixed(3)}</div>
+                        <div>Ratio: {params.freqA}:{params.freqB}</div>
+                    </div>
+
+                    <div className="controls">
+                        <h1>Lissajous Curve</h1>
+
+                        <div className="control-group">
+                            <h3>Frequency</h3>
+                            <div className="control-item">
+                                <label>
+                                    <span>Frequency A (x-axis)</span>
+                                    <span className="value">{params.freqA}</span>
+                                </label>
+                                <input
+                                    type="range"
+                                    min="1"
+                                    max="10"
+                                    step="1"
+                                    value={params.freqA}
+                                    onChange={(e) => handleParamChange('freqA', e.target.value)}
+                                />
+                            </div>
+                            <div className="control-item">
+                                <label>
+                                    <span>Frequency B (y-axis)</span>
+                                    <span className="value">{params.freqB}</span>
+                                </label>
+                                <input
+                                    type="range"
+                                    min="1"
+                                    max="10"
+                                    step="1"
+                                    value={params.freqB}
+                                    onChange={(e) => handleParamChange('freqB', e.target.value)}
+                                />
+                            </div>
+                        </div>
+
+                        <div className="control-group">
+                            <h3>Phase & Amplitude</h3>
+                            <div className="control-item">
+                                <label>
+                                    <span>Phase (δ)</span>
+                                    <span className="value">{(params.phase / Math.PI).toFixed(2)}π</span>
+                                </label>
+                                <input
+                                    type="range"
+                                    min="0"
+                                    max={Math.PI * 2}
+                                    step="0.01"
+                                    value={params.phase}
+                                    onChange={(e) => handleParamChange('phase', e.target.value)}
+                                />
+                            </div>
+                            <div className="control-item">
+                                <label>
+                                    <span>Amplitude A</span>
+                                    <span className="value">{Math.round(params.ampA)}</span>
+                                </label>
+                                <input
+                                    type="range"
+                                    min="50"
+                                    max="400"
+                                    step="10"
+                                    value={params.ampA}
+                                    onChange={(e) => handleParamChange('ampA', e.target.value)}
+                                />
+                            </div>
+                            <div className="control-item">
+                                <label>
+                                    <span>Amplitude B</span>
+                                    <span className="value">{Math.round(params.ampB)}</span>
+                                </label>
+                                <input
+                                    type="range"
+                                    min="50"
+                                    max="400"
+                                    step="10"
+                                    value={params.ampB}
+                                    onChange={(e) => handleParamChange('ampB', e.target.value)}
+                                />
+                            </div>
+                        </div>
+
+                        <div className="divider"></div>
+
+                        <div className="control-group">
+                            <h3>Visuals</h3>
+                            <div className="control-item">
+                                <label>
+                                    <span>Animation Speed</span>
+                                    <span className="value">{params.speed.toFixed(1)}x</span>
+                                </label>
+                                <input
+                                    type="range"
+                                    min="0.1"
+                                    max="3"
+                                    step="0.1"
+                                    value={params.speed}
+                                    onChange={(e) => handleParamChange('speed', e.target.value)}
+                                />
+                            </div>
+                            <div className="control-item">
+                                <label>
+                                    <span>Line Width</span>
+                                    <span className="value">{params.lineWidth}</span>
+                                </label>
+                                <input
+                                    type="range"
+                                    min="1"
+                                    max="10"
+                                    step="1"
+                                    value={params.lineWidth}
+                                    onChange={(e) => handleParamChange('lineWidth', e.target.value)}
+                                />
+                            </div>
+                            <div className="control-item">
+                                <label>
+                                    <span>Curve Color</span>
+                                </label>
+                                <input
+                                    type="color"
+                                    value={params.color}
+                                    onChange={(e) => handleParamChange('color', e.target.value)}
+                                />
+                            </div>
+                            <div className="checkbox-group">
+                                <input
+                                    type="checkbox"
+                                    id="showTrail"
+                                    checked={params.showTrail}
+                                    onChange={(e) => handleParamChange('showTrail', e.target.checked)}
+                                />
+                                <label htmlFor="showTrail">Show Trail</label>
+                            </div>
+                            <div className="checkbox-group">
+                                <input
+                                    type="checkbox"
+                                    id="showGlow"
+                                    checked={params.showGlow}
+                                    onChange={(e) => handleParamChange('showGlow', e.target.checked)}
+                                />
+                                <label htmlFor="showGlow">Glow Effect</label>
+                            </div>
+                            <div className="checkbox-group">
+                                <input
+                                    type="checkbox"
+                                    id="rainbowMode"
+                                    checked={params.rainbowMode}
+                                    onChange={(e) => handleParamChange('rainbowMode', e.target.checked)}
+                                />
+                                <label htmlFor="rainbowMode">Rainbow Mode</label>
+                            </div>
+                            <div className="checkbox-group">
+                                <input
+                                    type="checkbox"
+                                    id="infinityMode"
+                                    checked={params.infinityMode}
+                                    onChange={(e) => handleParamChange('infinityMode', e.target.checked)}
+                                />
+                                <label htmlFor="infinityMode">Infinity Mode</label>
+                            </div>
+                        </div>
+
+                        <div className="divider"></div>
+
+                        <div className="control-group">
+                            <h3>Presets</h3>
+                            <div className="presets">
+                                {PRESETS.map((preset) => (
+                                    <button key={preset.name} onClick={() => handlePreset(preset)}>
+                                        {preset.name}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
+                        <div className="divider"></div>
+
+                        <button onClick={() => setIsAnimating(!isAnimating)}>
+                            {isAnimating ? 'Pause' : 'Play'}
+                        </button>
+                        <button onClick={clearCanvas}>Clear Canvas</button>
+                    </div>
+                </>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<LissajousSimulator />);
+    </script>
+</body>
+</html>
