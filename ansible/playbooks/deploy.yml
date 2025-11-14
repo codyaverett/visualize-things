@@ -22,6 +22,7 @@
         src: "{{ local_project_dir }}/"
         dest: "{{ remote_deploy_dir }}/"
         delete: yes
+        checksum: yes
         rsync_opts:
           - "--exclude=.git"
           - "--exclude=.claude"
@@ -32,6 +33,7 @@
           - "--no-owner"
           - "--no-group"
           - "--chmod=ugo=rwX"
+          - "--itemize-changes"
       delegate_to: localhost
       become: no
 
