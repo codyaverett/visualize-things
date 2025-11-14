@@ -28,6 +28,10 @@
           - "--exclude=ansible"
           - "--include=*.html"
           - "--exclude=*"
+          - "--no-perms"
+          - "--no-owner"
+          - "--no-group"
+          - "--chmod=ugo=rwX"
       delegate_to: localhost
       become: no
 

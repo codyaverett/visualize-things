@@ -37,6 +37,35 @@
             backdrop-filter: blur(10px);
             border: 1px solid rgba(255, 255, 255, 0.1);
             min-width: 250px;
+            transition: transform 0.3s ease;
+        }
+
+        .controls.collapsed {
+            transform: translateX(calc(-100% - 20px));
+        }
+
+        .toggle-controls {
+            position: absolute;
+            right: -40px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(0, 0, 0, 0.7);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 0 10px 10px 0;
+            padding: 10px;
+            cursor: pointer;
+            color: #fff;
+            font-size: 20px;
+            width: 40px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(10px);
+        }
+
+        .toggle-controls:hover {
+            background: rgba(102, 126, 234, 0.3);
         }
         
         .controls h3 {
@@ -126,10 +155,85 @@
             border-top: 1px solid rgba(255, 255, 255, 0.1);
             padding-top: 10px;
         }
+
+        /* Mobile Styles */
+        @media (max-width: 768px) {
+            .controls {
+                top: 10px;
+                left: 10px;
+                width: calc(100vw - 60px);
+                max-width: 280px;
+                padding: 15px;
+                font-size: 14px;
+                max-height: calc(100vh - 100px);
+                overflow-y: auto;
+            }
+
+            .controls.collapsed {
+                transform: translateX(calc(-100% - 10px));
+            }
+
+            .toggle-controls {
+                right: -45px;
+                width: 45px;
+                height: 60px;
+                font-size: 24px;
+                border-radius: 0 15px 15px 0;
+            }
+
+            .controls h3 {
+                font-size: 12px;
+                margin-bottom: 10px;
+            }
+
+            .control-group label {
+                font-size: 11px;
+            }
+
+            button {
+                padding: 8px 12px;
+                font-size: 12px;
+                margin-bottom: 8px;
+            }
+
+            select {
+                font-size: 12px;
+                padding: 6px;
+            }
+
+            input[type="range"] {
+                margin-bottom: 8px;
+            }
+
+            .range-value {
+                font-size: 10px;
+            }
+
+            .info {
+                font-size: 10px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .controls {
+                width: calc(100vw - 50px);
+                padding: 12px;
+            }
+
+            .controls h3 {
+                font-size: 11px;
+            }
+
+            button {
+                padding: 6px 10px;
+                font-size: 11px;
+            }
+        }
     </style>
 </head>
 <body>
     <div class="controls">
+        <div class="toggle-controls" onclick="toggleControls()">☰</div>
         <h3>Music Visualizer</h3>
         
         <button id="playBtn">Play Music</button>
@@ -732,7 +836,17 @@
         }
         
         animate(0);
-        
+
+        // Toggle controls function
+        function toggleControls() {
+            document.querySelector('.controls').classList.toggle('collapsed');
+        }
+
+        // Start collapsed on mobile
+        if (window.innerWidth <= 768) {
+            document.querySelector('.controls').classList.add('collapsed');
+        }
+
         // Handle resize
         window.addEventListener('resize', () => {
             camera.aspect = window.innerWidth / window.innerHeight;

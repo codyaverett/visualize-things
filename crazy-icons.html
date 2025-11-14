@@ -35,6 +35,37 @@
             max-height: 90vh;
             overflow-y: auto;
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+            transition: transform 0.3s ease;
+            z-index: 1000;
+        }
+
+        #controls.collapsed {
+            transform: translateX(calc(100% + 20px));
+        }
+
+        .toggle-controls {
+            position: absolute;
+            left: -40px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(30, 30, 30, 0.95);
+            border: 1px solid rgba(76, 175, 80, 0.3);
+            border-radius: 10px 0 0 10px;
+            padding: 10px;
+            cursor: pointer;
+            color: #4CAF50;
+            font-size: 20px;
+            width: 40px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(10px);
+            box-shadow: -4px 0 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .toggle-controls:hover {
+            background: rgba(76, 175, 80, 0.2);
         }
 
         h2 {
@@ -148,6 +179,101 @@
             font-size: 0.9em;
             color: #4CAF50;
         }
+
+        /* Mobile Styles */
+        @media (max-width: 768px) {
+            #controls {
+                top: 10px;
+                right: 10px;
+                width: calc(100vw - 60px);
+                max-width: 300px;
+                max-height: calc(100vh - 100px);
+                padding: 15px;
+                font-size: 14px;
+            }
+
+            #controls.collapsed {
+                transform: translateX(calc(100% + 10px));
+            }
+
+            .toggle-controls {
+                left: -45px;
+                width: 45px;
+                height: 60px;
+                font-size: 24px;
+                border-radius: 15px 0 0 15px;
+            }
+
+            h2 {
+                font-size: 1em;
+                margin-bottom: 12px;
+            }
+
+            .control-group {
+                margin-bottom: 15px;
+                padding-bottom: 15px;
+            }
+
+            .control-group h2 {
+                font-size: 0.95em;
+            }
+
+            label {
+                font-size: 0.85em;
+            }
+
+            .value-display {
+                font-size: 0.85em;
+            }
+
+            input[type="range"] {
+                margin-bottom: 8px;
+            }
+
+            button {
+                padding: 8px;
+                font-size: 0.85em;
+                margin-bottom: 8px;
+            }
+
+            select {
+                font-size: 0.85em;
+                padding: 6px;
+            }
+
+            #stats {
+                top: auto;
+                bottom: 10px;
+                left: 10px;
+                font-size: 0.8em;
+                padding: 10px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            #controls {
+                width: calc(100vw - 50px);
+                padding: 12px;
+            }
+
+            h2 {
+                font-size: 0.95em;
+            }
+
+            .control-group h2 {
+                font-size: 0.9em;
+            }
+
+            button {
+                padding: 6px;
+                font-size: 0.8em;
+            }
+
+            .icon-preview img {
+                width: 30px;
+                height: 30px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -158,6 +284,7 @@
     </div>
 
     <div id="controls">
+        <div class="toggle-controls" onclick="toggleControls()">☰</div>
         <h2>Visual Animation Studio</h2>
         
         <div class="control-group">
@@ -674,6 +801,16 @@
             }
             document.getElementById('particleCount').textContent = particles.length;
         });
+
+        // Toggle controls function
+        function toggleControls() {
+            document.getElementById('controls').classList.toggle('collapsed');
+        }
+
+        // Start collapsed on mobile
+        if (window.innerWidth <= 768) {
+            document.getElementById('controls').classList.add('collapsed');
+        }
 
         // Initialize
         resizeCanvas();
