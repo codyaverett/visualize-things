@@ -1,0 +1,44 @@
+---
+- name: Deploy visualize-things to nginx
+  hosts: webservers
+  become: yes
+
+  vars:
+    project_name: visualize-things
+    local_project_dir: "{{ playbook_dir }}/../.."
+    remote_deploy_dir: "{{ nginx_html_dir }}/{{ project_name }}"
+
+  tasks:
+    - name: Ensure deployment directory exists
+      file:
+        path: "{{ remote_deploy_dir }}"
+        state: directory
+        owner: "{{ ansible_user }}"
+        group: "{{ ansible_user }}"
+        mode: '0755'
+
+    - name: Deploy HTML files
+      synchronize:
+        src: "{{ local_project_dir }}/"
+        dest: "{{ remote_deploy_dir }}/"
+        delete: yes
+        rsync_opts:
+          - "--exclude=.git"
+          - "--exclude=.claude"
+          - "--exclude=ansible"
+          - "--include=*.html"
+          - "--exclude=*"
+      delegate_to: localhost
+      become: no
+
+    - name: Set proper permissions on deployed files
+      file:
+        path: "{{ remote_deploy_dir }}"
+        owner: "{{ web_user }}"
+        group: "{{ web_group }}"
+        mode: '0755'
+        recurse: yes
+
+    - name: Display deployment URL
+      debug:
+        msg: "Deployment complete! Access your visualizations at http://starbase/{{ project_name }}/"
