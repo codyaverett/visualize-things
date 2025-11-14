@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visualizations Collection</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 900px;
+            width: 100%;
+        }
+
+        h1 {
+            color: white;
+            font-size: 3rem;
+            margin-bottom: 0.5rem;
+            text-align: center;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .subtitle {
+            color: rgba(255, 255, 255, 0.9);
+            text-align: center;
+            margin-bottom: 3rem;
+            font-size: 1.1rem;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            text-decoration: none;
+            display: block;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .card-title {
+            color: #333;
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .card-description {
+            color: #666;
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+
+        .icon {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1rem;
+            font-size: 1.5rem;
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2rem;
+            }
+
+            .grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Visualizations</h1>
+        <p class="subtitle">Interactive web-based visualizations and demos</p>
+
+        <div class="grid">
+            <a href="particle-simulator.html" class="card">
+                <div class="icon">✨</div>
+                <div class="card-title">Particle Simulator</div>
+                <div class="card-description">Interactive particle physics simulation with customizable parameters and visual effects</div>
+            </a>
+
+            <a href="lissajous-curve.html" class="card">
+                <div class="icon">〰️</div>
+                <div class="card-title">Lissajous Curve</div>
+                <div class="card-description">Mathematical curve visualization showing parametric equations and harmonic motion</div>
+            </a>
+
+            <a href="webgl-music-viz.html" class="card">
+                <div class="icon">🎵</div>
+                <div class="card-title">WebGL Music Visualizer</div>
+                <div class="card-description">Real-time audio visualization using WebGL with frequency spectrum analysis</div>
+            </a>
+
+            <a href="particle-like-button.html" class="card">
+                <div class="icon">💫</div>
+                <div class="card-title">Particle Like Button</div>
+                <div class="card-description">Animated like button with particle burst effects and smooth transitions</div>
+            </a>
+
+            <a href="crazy-icons.html" class="card">
+                <div class="icon">🎨</div>
+                <div class="card-title">Crazy Icons</div>
+                <div class="card-description">Dynamic icon animations with creative visual effects and interactions</div>
+            </a>
+
+            <a href="lockheed-martin-jobs-summary.html" class="card">
+                <div class="icon">📊</div>
+                <div class="card-title">Jobs Summary</div>
+                <div class="card-description">Lockheed Martin jobs data visualization and summary dashboard</div>
+            </a>
+        </div>
+    </div>
+</body>
+</html>
